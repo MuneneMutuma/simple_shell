@@ -14,5 +14,6 @@ int _setenv(char *name, char *value, int overwrite);
 int _unsetenv(char *name);
 char *_memset(char *s, char b, unsigned int n);
 char *_memcpy(char *dest, char *src, unsigned int i);
+int run(char **av);
 
 #endif
