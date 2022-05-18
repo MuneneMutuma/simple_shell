@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 /**
  * _strlen - finds the length of a string
  *
@@ -106,7 +108,7 @@ char *_strdup(char *str)
 	char *copy;
 
 	copy = malloc(_strlen(str) + 1);
-	copy = _strcpy(str);
+	 _strcpy(copy, str);
 
 	return (copy);
 }
