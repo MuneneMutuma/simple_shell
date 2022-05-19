@@ -17,15 +17,17 @@
  */
 int main(void)
 {
-	char *buf, **argv, *token, *thisfile;
+	char *buf, **argv, *thisfile;
 	size_t bufsize, argc;
-	ssize_t characters;
+	ssize_t characters = 0;
 	int problem;
 
 	thisfile = _getenv("_");
 	buf = NULL;
 	do {
-		_printf("$ ");
+		if (isatty(STDIN_FILENO))
+			_printf("$ ");
+
 		characters = getline(&buf, &bufsize, stdin);
 		if (characters == -1)
 		{
@@ -34,23 +36,14 @@ int main(void)
 		}
 
 		argv = (char **)malloc((_strlen(buf) + 1) * sizeof(argv));
-		for (argc = 0; ; argc++)
-		{
-			if (!argc)
-				token = strtok(buf, " \n");
-			else
-				token = strtok(NULL, " \n");
-			if (token == NULL)
-			{
-				argv[argc] = token;
-				break;
-			}
-			argv[argc] = token;
-		}
+
+		argc = tokenize(&argv, &buf, " \n");
 
 		problem = error_handler(&argc, &argv, &thisfile);
 		if (!problem)
 			run(argv);
+		if (!isatty(STDIN_FILENO))
+			exit(0);
 
 	} while (1);
 
@@ -107,6 +100,9 @@ int error_handler(size_t *ac, char ***av, char **thisfile)
 		return (1);
 	}
 
+	if (!*av[0])
+		return (1);
+
 	state = stat(*av[0], &sb);
 	if (state != 0)
 	{
@@ -115,4 +111,36 @@ int error_handler(size_t *ac, char ***av, char **thisfile)
 	}
 
 	return (0);
+}
+
+/**
+ * tokenize - utility function to tokenize a string using a delimeter
+ *
+ * @av: final array of tokens, NULL terminated
+ * @buf: string to be tokenized
+ * @delim: delimeter
+ *
+ * Return: number of tokens
+ */
+int tokenize(char ***av, char **buf, char *delim)
+{
+	int ac;
+	char *token;
+
+	for (ac = 0; ; ac++)
+	{
+		if (!ac)
+			token = strtok(*buf, delim);
+		else
+			token = strtok(NULL, delim);
+
+		if (token == NULL)
+		{
+			*av[ac] = token;
+			break;
+		}
+		*av[ac] = token;
+	}
+
+	return (ac);
 }
