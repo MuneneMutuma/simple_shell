@@ -30,8 +30,6 @@ int main(void)
 		if (isatty(STDIN_FILENO))
 			_printf("$ ");
 		characters = getline(&buf, &bufsize, stdin);
-		if (_strcmp(buf, "exit\n") == 0)
-			exit_code = 1;
 		if (characters == -1)
 			exit_code = -1;
 		if (exit_code)
@@ -130,7 +128,7 @@ char **tokenize(char **buf, char **delim)
 	token = NULL;
 
 	token = strtok(*buf, *delim);
-	while(token != NULL)
+	while (token != NULL)
 	{
 		line[ac] = token;
 		token = strtok(NULL, *delim);
