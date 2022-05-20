@@ -18,37 +18,44 @@
 int main(void)
 {
 	char *buf, **argv, *thisfile;
-	size_t bufsize, argc;
+	char *delim = " \n";
+	size_t  bufsize, argc;
 	ssize_t characters = 0;
-	int problem;
+	int problem, exit_code = 0;
 
 	thisfile = _getenv("_");
 	buf = NULL;
 	do {
+		argv = (char **)NULL;
 		if (isatty(STDIN_FILENO))
 			_printf("$ ");
-
 		characters = getline(&buf, &bufsize, stdin);
+		if (_strcmp(buf, "exit\n") == 0)
+			exit_code = 1;
 		if (characters == -1)
-		{
-			_printf("\n");
-			exit(EOF);
-		}
-
-		argv = (char **)malloc((_strlen(buf) + 1) * sizeof(argv));
-
-		argc = tokenize(&argv, &buf, " \n");
-
-		problem = error_handler(&argc, &argv, &thisfile);
+			exit_code = -1;
+		if (exit_code)
+			break;
+		if (_strcmp(buf, "\n") == 0)
+			continue;
+		argv = tokenize(&buf, &delim);
+		for (argc = 0; argv[argc]; argc++)
+			;
+		problem = error_handler(&argv, &thisfile);
 		if (!problem)
 			run(argv);
 		if (!isatty(STDIN_FILENO))
 			exit(0);
-
-	} while (1);
-
-	free(argv);
+		free(argv);
+	} while (exit_code != 1);
+	free(thisfile);
 	free(buf);
+	free(argv);
+	if (exit_code == -1)
+	{
+		_printf("\n");
+		exit(EOF);
+	}
 	return (0);
 }
 
@@ -82,23 +89,16 @@ int run(char **av)
 /**
  * error_handler - utility function for handling errors in argv
  *
- * @ac: argument count
  * @av: argument vector
  * @thisfile: the current running file in env
  *
  * Return: 0 if no erro, return 1 when ac > 1 or av[0] does not exist
  */
-int error_handler(size_t *ac, char ***av, char **thisfile)
+int error_handler(char ***av, char **thisfile)
 {
 	int state;
 	struct stat sb;
 
-	if (*ac > 1)
-	{
-		stat(" ", &sb);
-		perror(*thisfile);
-		return (1);
-	}
 
 	if (!*av[0])
 		return (1);
@@ -116,31 +116,31 @@ int error_handler(size_t *ac, char ***av, char **thisfile)
 /**
  * tokenize - utility function to tokenize a string using a delimeter
  *
- * @av: final array of tokens, NULL terminated
  * @buf: string to be tokenized
  * @delim: delimeter
  *
- * Return: number of tokens
+ * Return: array of string tokens
  */
-int tokenize(char ***av, char **buf, char *delim)
+char **tokenize(char **buf, char **delim)
 {
 	int ac;
-	char *token;
+	char *token, **line;
 
+	line = (char **)malloc((strlen(*buf) + 1) * sizeof(line));
+	token = NULL;
 	for (ac = 0; ; ac++)
 	{
 		if (!ac)
-			token = strtok(*buf, delim);
+			token = strtok(*buf, *delim);
 		else
-			token = strtok(NULL, delim);
+			token = strtok(NULL, *delim);
 
-		if (token == NULL)
+		if (token == NULL && ac > 0)
 		{
-			*av[ac] = token;
 			break;
 		}
-		*av[ac] = token;
+		line[ac] = token;
 	}
 
-	return (ac);
+	return (line);
 }
