@@ -41,7 +41,7 @@ int main(void)
 		if (!problem)
 			run(argv);
 		if (!isatty(STDIN_FILENO))
-			exit(0);
+			continue;
 		free(argv);
 	} while (exit_code != 1);
 	free(thisfile);
@@ -49,7 +49,8 @@ int main(void)
 	free(argv);
 	if (exit_code == -1)
 	{
-		_printf("\n");
+		if (isatty(STDIN_FILENO))
+			_printf("\n");
 		exit(EOF);
 	}
 	return (0);
@@ -119,7 +120,6 @@ int error_handler(char ***av, char **thisfile)
  * tokenize - utility function to tokenize a string using a delimeter
  *
  * @buf: string to be tokenized
- * @delim: delimeter
  *
  * Return: array of string tokens
  */
