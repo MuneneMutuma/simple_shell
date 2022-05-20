@@ -18,27 +18,25 @@
 int main(void)
 {
 	char *buf, **argv, *thisfile;
-	char *delim = " \n";
-	size_t  bufsize, argc;
+	size_t  bufsize = BUFSIZ;
 	ssize_t characters = 0;
 	int problem, exit_code = 0;
 
 	thisfile = _getenv("_");
-	buf = NULL;
+	buf = (char *)malloc(bufsize * sizeof(char));
 	do {
 		argv = (char **)NULL;
 		if (isatty(STDIN_FILENO))
 			_printf("$ ");
 		characters = getline(&buf, &bufsize, stdin);
+		buf[_strlen(buf) - 1] = '\0';
 		if (characters == -1)
 			exit_code = -1;
 		if (exit_code)
 			break;
 		if (_strcmp(buf, "\n") == 0)
 			continue;
-		argv = tokenize(&buf, &delim);
-		for (argc = 0; argv[argc]; argc++)
-			;
+		argv = tokenize(&buf);
 		problem = error_handler(&argv, &thisfile);
 		if (!problem)
 			run(argv);
@@ -67,19 +65,25 @@ int main(void)
 int run(char **av)
 {
 	pid_t pid;
-	int status, err = 0;
+	int status;
 
 	pid = fork();
-	if (pid == 0)
+	if (pid == -1)
 	{
-		err = execve(av[0], av, NULL);
-		exit(err);
+		perror("Error");
+		exit(-1);
+	}
+	else if (pid == 0)
+	{
+		if (execve(av[0], av, NULL) == -1)
+		{
+			perror("Error");
+			exit(-1);
+		}
 	}
 
-	if (pid > 1)
-	{
+	else
 		wait(&status);
-	}
 
 	return (1);
 }
@@ -119,19 +123,20 @@ int error_handler(char ***av, char **thisfile)
  *
  * Return: array of string tokens
  */
-char **tokenize(char **buf, char **delim)
+char **tokenize(char **buf)
 {
 	int ac = 0;
 	char *token, **line;
+	char *delim = " ";
 
 	line = (char **)malloc((strlen(*buf) + 1) * sizeof(char *));
 	token = NULL;
 
-	token = strtok(*buf, *delim);
+	token = strtok(*buf, delim);
 	while (token != NULL)
 	{
 		line[ac] = token;
-		token = strtok(NULL, *delim);
+		token = strtok(NULL, delim);
 		ac++;
 	}
 	line[ac] = NULL;

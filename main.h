@@ -16,6 +16,6 @@ char *_memset(char *s, char b, unsigned int n);
 char *_memcpy(char *dest, char *src, unsigned int i);
 int run(char **av);
 int error_handler(char ***argv, char **thisfile);
-char **tokenize(char **buf, char **delim);
+char **tokenize(char **buf);
 
 #endif
