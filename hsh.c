@@ -123,24 +123,20 @@ int error_handler(char ***av, char **thisfile)
  */
 char **tokenize(char **buf, char **delim)
 {
-	int ac;
+	int ac = 0;
 	char *token, **line;
 
-	line = (char **)malloc((strlen(*buf) + 1) * sizeof(line));
+	line = (char **)malloc((strlen(*buf) + 1) * sizeof(char *));
 	token = NULL;
-	for (ac = 0; ; ac++)
-	{
-		if (!ac)
-			token = strtok(*buf, *delim);
-		else
-			token = strtok(NULL, *delim);
 
-		if (token == NULL && ac > 0)
-		{
-			break;
-		}
+	token = strtok(*buf, *delim);
+	while(token != NULL)
+	{
 		line[ac] = token;
+		token = strtok(NULL, *delim);
+		ac++;
 	}
+	line[ac] = NULL;
 
 	return (line);
 }
